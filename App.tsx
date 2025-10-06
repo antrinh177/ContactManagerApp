@@ -1,45 +1,59 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+// src/App.tsx
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import React, { useState } from "react";
 import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+  Text,
+  SafeAreaView
+} from 'react-native';
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+// Screens
+import AddContactScreen from './src/screens/AddContact/AddContactScreen';
+import ContactListScreen from './src/screens/ContactList/ContactListScreen';
+import ContactDetailsScreen from './src/screens/ContactDetails/ContactDetailsScreen';
+
+// Context
+import { ContactProvider } from './src/utils/ContactContext';
+
+
+
+
+const App = () => {
+  const [stack, setStack] = useState([{ name: 'ContactList', params: {} }]);
+
+  const navigate = (name: any, params = {}) => {
+    setStack(prevStack => [...prevStack, { name, params }]);
+  };
+
+  const goBack = () => {
+    setStack(prevStack => (prevStack.length > 1 ? prevStack.slice(0, -1) : prevStack));
+  };
+
+  const renderScreen = () => {
+    const currentScreen = stack[stack.length - 1];
+    const navigation = { navigate, goBack };
+    const route = { params: currentScreen.params };
+
+    switch (currentScreen.name) {
+      case 'ContactList':
+        return <ContactListScreen navigation={navigation} />;
+      case 'AddContact':
+        return <AddContactScreen navigation={navigation} route={route} />;
+      case 'ContactDetails':
+        return <ContactDetailsScreen navigation={navigation} route={route} />;
+      default:
+        return (
+          <SafeAreaView>
+            <Text>Screen not found: {currentScreen.name}</Text>
+          </SafeAreaView>
+        );
+    }
+  };
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
+    <ContactProvider>
+      {renderScreen()}
+    </ContactProvider>
   );
-}
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
+};
 
 export default App;
